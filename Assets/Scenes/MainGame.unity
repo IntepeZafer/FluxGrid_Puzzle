@@ -1166,6 +1166,7 @@ MonoBehaviour:
   blockPrefab: {fileID: 4977058857187334150, guid: c49bd59abcb0fedefaef9a0cf4f86a09, type: 3}
   cellPrefab: {fileID: 5212625079345238996, guid: 02862c1483d8f4a97a5c2d70ea61219b, type: 3}
   cellSize: 1.1
+  contactEffectPrefab: {fileID: 445475927859329866, guid: 6901958a50cb8aeb6b42cdfd77cecbbc, type: 3}
 --- !u!1 &980375626
 GameObject:
   m_ObjectHideFlags: 0
@@ -1747,7 +1748,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f0273bd38a4ec794a9e591234e4690b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  swipeSound: {fileID: 0}
+  swipeSound: {fileID: 8300000, guid: 524a1d8dd16a18a059864528736f2566, type: 3}
   snapSound: {fileID: 0}
   winSound: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

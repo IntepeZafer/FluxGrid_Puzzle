@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using PolarityGrid.Core;
+using TMPro; // TextMeshPro için şart
 
 namespace PolarityGrid.Blocks
 {
@@ -8,6 +9,7 @@ namespace PolarityGrid.Blocks
     {
         [SerializeField] private BlockType blockType;
         [SerializeField] private SpriteRenderer spriteRenderer;
+        [SerializeField] private TextMeshPro symbolText; // Block içindeki TMP objesi
         [SerializeField] private float moveSpeed = 15f; 
 
         public BlockType Type => blockType;
@@ -22,11 +24,21 @@ namespace PolarityGrid.Blocks
         private void UpdateVisual()
         {
             if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+            
             switch (blockType)
             {
-                case BlockType.Positive: spriteRenderer.color = Color.blue; break;
-                case BlockType.Negative: spriteRenderer.color = Color.red; break;
-                case BlockType.Obstacle: spriteRenderer.color = Color.gray; break;
+                case BlockType.Positive: 
+                    spriteRenderer.color = Color.blue; 
+                    if(symbolText != null) symbolText.text = "+";
+                    break;
+                case BlockType.Negative: 
+                    spriteRenderer.color = Color.red; 
+                    if(symbolText != null) symbolText.text = "-";
+                    break;
+                case BlockType.Obstacle: 
+                    spriteRenderer.color = Color.gray; 
+                    if(symbolText != null) symbolText.text = ""; 
+                    break;
             }
         }
 
@@ -39,22 +51,28 @@ namespace PolarityGrid.Blocks
         private IEnumerator MoveRoutine(Vector3 target)
         {
             IsMoving = true;
-            transform.localScale = new Vector3(1.1f , 0.9f, 1f);
-            while(Vector3.Distance(transform.position , target) > 0.01f)
+            
+            // Hareket başlarken hafif esneme (Squash)
+            transform.localScale = new Vector3(1.1f, 0.9f, 1f);
+
+            while (Vector3.Distance(transform.position, target) > 0.01f)
             {
-                transform.position = Vector3.MoveTowards(transform.position , target , moveSpeed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
                 yield return null;
             }
             transform.position = target;
-            float timer = 0f;
-            while(timer < 0.2f)
+            
+            // Hedefe ulaştığında zıplama (Juice)
+            float timer = 0;
+            while (timer < 0.2f)
             {
                 timer += Time.deltaTime;
-                float scale = Mathf.Sin(timer * Mathf.PI / 0.2f) * 0.2f;
-                transform.localScale = new Vector3(scale , scale , 1f);
+                float scale = 1f + Mathf.Sin(timer * Mathf.PI / 0.2f) * 0.2f;
+                transform.localScale = new Vector3(scale, scale, 1f);
                 yield return null;
             }
             transform.localScale = Vector3.one;
+
             IsMoving = false;
         }
     }

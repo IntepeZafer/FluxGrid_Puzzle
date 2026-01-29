@@ -15,18 +15,22 @@ namespace PolarityGrid.Managers
         [SerializeField] private Cell cellPrefab;
         [SerializeField] private float cellSize = 1.1f;
 
-        [Header("UI References")]
-        private int _moveCount = 0;
+        [Header("VFX")]
+        [SerializeField] private GameObject contactEffectPrefab;
 
         private Dictionary<Vector2Int, Cell> _gridCells = new Dictionary<Vector2Int, Cell>();
         private bool _isProcessing = false;
+        private int _moveCount = 0;
 
         private void OnEnable() => InputManager.OnSwipe += HandleSwipe;
         private void OnDisable() => InputManager.OnSwipe -= HandleSwipe;
 
         private void Start()
         {
-            currentLevel = LevelManager.Instance.GetCurrentLevelData();
+            // LevelManager'dan veri çekme (Eğer LevelManager hazırsa)
+            if(LevelManager.Instance != null)
+                currentLevel = LevelManager.Instance.GetCurrentLevelData();
+
             GenerateGrid(currentLevel.width, currentLevel.height);
             SpawnInitialBlocks();
         }
@@ -63,15 +67,12 @@ namespace PolarityGrid.Managers
 
         private void HandleSwipe(Direction dir)
         {
-            if(_isProcessing || GameManager.Instance.CurrentState != GameState.Playing) return;
-            if (_isProcessing) return;
+            if (_isProcessing || GameManager.Instance.CurrentState != GameState.Playing) return;
+            
             _moveCount++;
-            // UI'ı güncelle
-            if (UIManager.Instance != null)
-                UIManager.Instance.UpdateMoveCount(_moveCount);
-
+            if(UIManager.Instance != null) UIManager.Instance.UpdateMoveCount(_moveCount);
+            
             StartCoroutine(SequenceMoveAndMagnetism(dir));
-            if(SoundManager.Instance != null) SoundManager.Instance.PlaySwipe();
         }
 
         private IEnumerator SequenceMoveAndMagnetism(Direction dir)
@@ -91,9 +92,7 @@ namespace PolarityGrid.Managers
                 }
             }
 
-            // KAZANMA KONTROLÜ
             GameManager.Instance.CheckWinCondition(CheckIfAllBlocksPaired());
-
             _isProcessing = false;
         }
 
@@ -164,6 +163,8 @@ namespace PolarityGrid.Managers
                             nextCell.ClearCell();
                             targetCell.SetBlock(pulledBlock);
                             pulledBlock.MoveTo(targetCell.transform.position);
+                            
+                            SpawnEffect(targetCell.transform.position); // VFX
                             return true;
                         }
                     }
@@ -191,11 +192,22 @@ namespace PolarityGrid.Managers
                         neighborCell.ClearCell();
                         pushTargetCell.SetBlock(otherBlock);
                         otherBlock.MoveTo(pushTargetCell.transform.position);
+                        
+                        SpawnEffect(pushTargetCell.transform.position); // VFX
                         return true;
                     }
                 }
             }
             return false;
+        }
+
+        private void SpawnEffect(Vector3 position)
+        {
+            if (contactEffectPrefab != null)
+            {
+                GameObject fx = Instantiate(contactEffectPrefab, position, Quaternion.identity);
+                Destroy(fx, 1f); 
+            }
         }
 
         private bool CheckIfAllBlocksPaired()
@@ -215,7 +227,6 @@ namespace PolarityGrid.Managers
             Cell c = null;
             foreach (var cell in _gridCells.Values) if (cell.CurrentBlock == block) { c = cell; break; }
             if (c == null) return false;
-
             Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
             foreach (var d in dirs)
             {
